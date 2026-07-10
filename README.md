@@ -11,16 +11,25 @@
 
 This repository acts as an on-demand post-deployment log analysis utility. Staging deployments, UAT windows, and Production deployments are treated as completely independent events. 
 
-### 1. Initial One-Time Repository Setup
+### 1. Day-to-Day Operational Workflow (The RE Runbook)
+Because deployments are handled manually by the Release Engineer (RE) on independent timelines, follow these steps to trigger the analysis:
+## Phase 1: Staging Analysis
+1. The RE manually executes the deployment to the Acquia Staging environment.
+2. Once complete, the RE opens the GitLab pipeline for the target branch.
+3. Click the Play (▶️) button on the ⁠analyze_stage_deployment⁠ job.
+4. The agent will pull the staging logs, run the optimization loop, and output errors if found.
+## Phase 2: The UAT Gap (Typically 5 Days)
+ The repository remains completely idle. No automatic jobs will trigger or push configurations to production during this validation period.
+
+### 2. Initial One-Time Repository Setup
 Ensure your local environment secrets do not get committed to the repository history by adding these files to your `.gitignore`:
-```text
 litellm_config.json
 combined_deployment.log
 acquia_*.log
  * Configure Git Exclusions: Ensure that litellm_config.json is explicitly declared inside your repository’s .gitignore file so that developer API tokens are never accidentally committed.
-   # .gitignore snippet text ```
+   # .gitignore snippet text 
    
-### 2. Configure GitLab CI/CD Variables (Cloud Setup)
+### 3. Configure GitLab CI/CD Variables (Cloud Setup)
 Navigate to your GitLab Project ➔ Settings ➔ CI/CD ➔ Variables, and manually populate the required runtime keys.
 Check Mask variable for all keys so they never leak in raw execution logs. Check Protect variable for production keys to restrict them to verified branches.
 | Variable Key | Scope / Target | Security | Description |
@@ -38,15 +47,7 @@ Check Mask variable for all keys so they never leak in raw execution logs. Check
 | ACQUIA_PROD_API_SECRET | Production Environment | Masked & Protected | Acquia Production API access secret |
 | ACQUIA_PROD_ENV_UUID | Production Environment | Cleartext | Target Acquia Production Environment Application UUID |
 
-### 3. Day-to-Day Operational Workflow (The RE Runbook)
-Because deployments are handled manually by the Release Engineer (RE) on independent timelines, follow these steps to trigger the analysis:
-## Phase 1: Staging Analysis
-1. The RE manually executes the deployment to the Acquia Staging environment.
-2. Once complete, the RE opens the GitLab pipeline for the target branch.
-3. Click the Play (▶️) button on the ⁠analyze_stage_deployment⁠ job.
-4. The agent will pull the staging logs, run the optimization loop, and output errors if found.
-## Phase 2: The UAT Gap (Typically 5 Days)
- The repository remains completely idle. No automatic jobs will trigger or push configurations to production during this validation period.
+
 ## Phase 3: Production Analysis
 1. After UAT approval, the RE manually executes the deployment to the live Acquia Production environment.
 2. Once complete, the RE opens the GitLab pipeline.
