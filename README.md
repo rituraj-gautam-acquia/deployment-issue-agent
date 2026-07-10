@@ -27,7 +27,6 @@ litellm_config.json
 combined_deployment.log
 acquia_*.log
  * Configure Git Exclusions: Ensure that litellm_config.json is explicitly declared inside your repository’s .gitignore file so that developer API tokens are never accidentally committed.
-   # .gitignore snippet text 
    
 ### 3. Configure GitLab CI/CD Variables (Cloud Setup)
 Navigate to your GitLab Project ➔ Settings ➔ CI/CD ➔ Variables, and manually populate the required runtime keys.
