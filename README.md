@@ -13,12 +13,12 @@ This repository acts as an on-demand post-deployment log analysis utility. Stagi
 
 ### 1. Day-to-Day Operational Workflow (The RE Runbook)
 Because deployments are handled manually by the Release Engineer (RE) on independent timelines, follow these steps to trigger the analysis:
-## Phase 1: Staging Analysis
+#### Phase 1: Staging Analysis
 1. The RE manually executes the deployment to the Acquia Staging environment.
 2. Once complete, the RE opens the GitLab pipeline for the target branch.
 3. Click the Play (▶️) button on the ⁠analyze_stage_deployment⁠ job.
 4. The agent will pull the staging logs, run the optimization loop, and output errors if found.
-## Phase 2: The UAT Gap (Typically 5 Days)
+#### Phase 2: The UAT Gap (Typically 5 Days)
  The repository remains completely idle. No automatic jobs will trigger or push configurations to production during this validation period.
 
 ### 2. Initial One-Time Repository Setup
