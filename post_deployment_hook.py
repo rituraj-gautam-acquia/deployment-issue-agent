@@ -24,33 +24,33 @@ MODEL = config["LITELLM_MODEL"]
 litellm.drop_params = True 
 
 # 3. Financial Harness Configuration
-TOTAL_COST = 0.0
-BUDGET_CAP = 5.00  # Hard budget ceiling in USD
+# TOTAL_COST = 0.0
+# BUDGET_CAP = 5.00  # Hard budget ceiling in USD
 
-def call_claude_tracked(system_prompt, user_content):
-    """Executes a request to Claude while tracking and capping token costs in real-time."""
-    global TOTAL_COST
+# def call_claude_tracked(system_prompt, user_content):
+#    """Executes a request to Claude while tracking and capping token costs in real-time."""
+#    global TOTAL_COST
     
-    if TOTAL_COST >= BUDGET_CAP:
-        print(f"FATAL: Financial harness triggered! Budget cap of ${BUDGET_CAP:.2f} reached. Aborting processing.")
-        sys.exit(1)
+#    if TOTAL_COST >= BUDGET_CAP:
+#        print(f"FATAL: Financial harness triggered! Budget cap of ${BUDGET_CAP:.2f} reached. Aborting processing.")
+#        sys.exit(1)
         
-    response = litellm.completion(
-        model=MODEL,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_content}
-        ]
-    )
+#    response = litellm.completion(
+#        model=MODEL,
+#        messages=[
+#            {"role": "system", "content": system_prompt},
+#            {"role": "user", "content": user_content}
+#        ]
+#    )
     
-    call_cost = completion_cost(response)
-    TOTAL_COST += call_cost
-    print(f"   [Cost Tracker] Call Cost: ${call_cost:.5f} | Cumulative Spend: ${TOTAL_COST:.5f}")
+#    call_cost = completion_cost(response)
+#    TOTAL_COST += call_cost
+#    print(f"   [Cost Tracker] Call Cost: ${call_cost:.5f} | Cumulative Spend: ${TOTAL_COST:.5f}")
     
-    if TOTAL_COST >= BUDGET_CAP:
-        print(f"WARNING: Cost harness breached mid-turn. Enforcing termination protocols.")
+#    if TOTAL_COST >= BUDGET_CAP:
+#        print(f"WARNING: Cost harness breached mid-turn. Enforcing termination protocols.")
         
-    return response.choices[0].message.content
+#    return response.choices[0].message.content
 
 def read_file(file_path):
     with open(file_path, "r", encoding="utf-8") as f:
