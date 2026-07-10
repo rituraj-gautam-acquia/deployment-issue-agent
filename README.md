@@ -5,7 +5,7 @@
  * Initial Investigation: The Issue Investigator Agent uses Claude's pre-trained intelligence of Drupal core, contrib extensions, entity APIs, and Symfony service containers to deduce a baseline mitigation path.
  * Critique-and-Refine Loop: The Solution Evaluator Agent acts as a critic. It reviews the candidate solution against specific Drupal runtime implications (database updates, config schema syncs, routing cache clears) and iteratively updates the plan for up to 3 turns or until it declares SOLUTION_OPTIMAL.
  * Structured Packaging: The Solution Specialist Agent translates the finalized remediation guide into a strict, machine-readable JSON payload (coding_agent_prompt.json).
- * Financial Harness Control: Every token consumed is tracked in real-time via litellm.completion_cost(). If cumulative processing costs hit the built-in safety limit of $5.00 USD, the harness forces an immediate safe shutdown to protect against cost overruns.
+ * (Optional) Financial Harness Control: Every token consumed is tracked in real-time via litellm.completion_cost(). If cumulative processing costs hit the built-in safety limit of $5.00 USD, the harness forces an immediate safe shutdown to protect against cost overruns.
 
 ## 🛑 Manual Steps & Operational Lifecycle
 
