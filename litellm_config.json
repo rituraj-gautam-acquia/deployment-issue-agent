@@ -1,0 +1,5 @@
+{
+  "LITELLM_BASE_URL": "https://proxy.yourdomain.com/v1",
+  "LITELLM_API_KEY": "sk-litellm-your-access-key",
+  "LITELLM_MODEL": "openai/claude-3-5-sonnet"
+}

@@ -1,0 +1,80 @@
+stages:
+  - analysis
+
+.post_deploy_hook_template: &post_deploy_hook
+  image: python:3.11-slim
+  when: manual  # Allows the RE to trigger the analysis explicitly post-deployment
+  before_script:
+    - pip install -r requirements.txt
+    # 1. Download and configure the Acquia CLI tool natively
+    - apt-get update && apt-get install -y curl
+    - curl -OL https://github.com/acquia/cli/releases/latest/download/acli.phar
+    - chmod +x acli.phar && mv acli.phar /usr/local/bin/acli
+    # 2. Authenticate against Acquia Cloud Platform API v2
+    - acli auth:login --key="$ACQUIA_API_KEY" --secret="$ACQUIA_API_SECRET"
+    # 3. Assemble the LiteLLM config parameters dynamically
+    - |
+      echo "{
+        \"LITELLM_BASE_URL\": \"$LITELLM_BASE_URL\",
+        \"LITELLM_API_KEY\": \"$LITELLM_API_KEY\",
+        \"LITELLM_MODEL\": \"$LITELLM_MODEL\"
+      }" > litellm_config.json
+  script:
+    # 1. Capture Local Build/Drush Pipeline logs if applicable, or initialize the file
+    - echo "=== LOCAL BUILD & DEPLOYMENT LOGS ===" > combined_deployment.log
+    - ./deploy_script.sh >> combined_deployment.log 2>&1 || echo "No local deploy script executed directly in this run" >> combined_deployment.log
+    
+    # 2. Initialize Remote Target Log Section
+    - echo "=== ACQUIA REMOTE RUNTIME LOGS ===" >> combined_deployment.log
+    
+    # Fetch Remote PHP Errors
+    - echo "--- PHP Error Log Stream ---" >> combined_deployment.log
+    - acli api:environments-logs-download "$ACQUIA_ENV_UUID" "php-error" --file=acquia_php.log || echo "PHP log download skipped" >> acquia_php.log
+    - cat acquia_php.log >> combined_deployment.log
+    
+    # Fetch Remote Drupal Watchdog Entries
+    - echo "--- Drupal Watchdog Log Stream ---" >> combined_deployment.log
+    - acli api:environments-logs-download "$ACQUIA_ENV_UUID" "drupal-watchdog" --file=acquia_watchdog.log || echo "Watchdog log download skipped" >> acquia_watchdog.log
+    - cat acquia_watchdog.log >> combined_deployment.log
+    
+    # Fetch Remote Apache Server Errors
+    - echo "--- Apache Server Error Stream ---" >> combined_deployment.log
+    - acli api:environments-logs-download "$ACQUIA_ENV_UUID" "apache-error" --file=acquia_apache.log || echo "Apache log download skipped" >> acquia_apache.log
+    - cat acquia_apache.log >> combined_deployment.log
+    
+    # 3. Run the processing script against the aggregate log data
+    - python post_deploy_hook.py combined_deployment.log
+  artifacts:
+    when: always
+    paths:
+      - combined_deployment.log
+      - coding_agent_prompt.json
+    expire_in: 1 week
+
+# EVENT 1: Run this manually right after the Staging deployment is completed
+analyze_stage_deployment:
+  stage: analysis
+  environment:
+    name: stage
+  variables:
+    LITELLM_BASE_URL: $STAGE_LITELLM_BASE_URL
+    LITELLM_API_KEY: $STAGE_LITELLM_API_KEY
+    LITELLM_MODEL: $STAGE_LITELLM_MODEL
+    ACQUIA_API_KEY: $ACQUIA_STAGE_API_KEY
+    ACQUIA_API_SECRET: $ACQUIA_STAGE_API_SECRET
+    ACQUIA_ENV_UUID: $ACQUIA_STAGE_ENV_UUID
+  <<: *post_deploy_hook
+
+# EVENT 2: Run this manually 5 days later right after the Production deployment is completed
+analyze_prod_deployment:
+  stage: analysis
+  environment:
+    name: prod
+  variables:
+    LITELLM_BASE_URL: $PROD_LITELLM_BASE_URL
+    LITELLM_API_KEY: $PROD_LITELLM_API_KEY
+    LITELLM_MODEL: $PROD_LITELLM_MODEL
+    ACQUIA_API_KEY: $ACQUIA_PROD_API_KEY
+    ACQUIA_API_SECRET: $ACQUIA_PROD_API_SECRET
+    ACQUIA_ENV_UUID: $ACQUIA_PROD_ENV_UUID
+  <<: *post_deploy_hook
